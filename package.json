@@ -1,0 +1,27 @@
+{
+  "name": "password-manager",
+  "version": "1.0.0",
+  "description": "A project for  >Creating a strong password |users can select its length >And assign it to an app //The project will be done using Typescript & redis & express",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeMo900/password-manager.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DeMo900/password-manager/issues"
+  },
+  "homepage": "https://github.com/DeMo900/password-manager#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "redis": "^5.10.0",
+    "ts-node": "^10.9.2"
+  }
+}
