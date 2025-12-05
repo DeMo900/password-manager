@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import * as redis from "redis";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import * as helmet from "helmet";
 dotenv.config();
 const port = process.env.PORT ;
 const app = express();
@@ -16,6 +17,8 @@ console.log(`Redis Client Error ${err}`)
 })
 
 // middlewares
+app.set("view engine","ejs")
+app.use(helmet.default())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 //functions
@@ -23,20 +26,30 @@ app.use(express.urlencoded({ extended: true }));
     appName:string
   }
 const deletePassword = async (req: Request<{},{},delbody>, res: Response) => {
+  try{
+  let key = await db.get(req.body.appName)
+  if(!key){
+    return res.status(404).send("password not found")
+  }
  await db.del(req.body.appName)
   return res.status(200).send(`password  deleted`);
+}catch(err){
+  return res.status(500).send("Internal Server Error")
+}
 }
 // routes
 app.get("/", async (req: Request, res: Response) => {
    let arr:object[] = []
   let key = await db.keys("*")
-  console.log(key)
+  //console.log(key)
   for (let i = 0; i < key.length; i++){
 
   let value = await db.get(key[i]!)
-   arr.push({[key[i]!]  : value})
+   arr.push({app:key[i]! , password:value})
+ 
 }
-res.send(arr)
+  console.log(arr)
+res.render("index",{data:arr})
 });
 //post
 interface delbody {
@@ -54,7 +67,7 @@ let  plength = parseInt(length);
  //generate password
  const password = crypto.randomBytes(Math.ceil(plength / 2)).toString("hex").slice(0, plength);
  await db.set(appName, password);
- return res.status(200).send(`password set${appName}:${password}`);
+ return res.status(302).redirect("/");
  
 });
  //delete existing password
