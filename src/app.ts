@@ -20,18 +20,21 @@ console.log(`Redis Client Error ${err}`)
 app.set("view engine","ejs")
 app.use(helmet.default())
 app.use(express.json());
+app.use(express.static("assets"));
 app.use(express.urlencoded({ extended: true }));
 //functions
   interface delbody {
     appName:string
   }
-const deletePassword = async (req: Request<{},{},delbody>, res: Response) => {
+  interface delparam extends delbody{}
+const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Response) => {
   try{
-  let key = await db.get(req.body.appName)
+  let key = await db.get(req.params.appName)
+  console.log(req.params.appName)
   if(!key){
     return res.status(404).send("password not found")
   }
- await db.del(req.body.appName)
+ await db.del(req.params.appName)
   return res.status(200).send(`password  deleted`);
 }catch(err){
   return res.status(500).send("Internal Server Error")
@@ -48,9 +51,8 @@ app.get("/", async (req: Request, res: Response) => {
    arr.push({app:key[i]! , password:value})
  
 }
-res.send("")
   console.log(arr)
-//res.render("index",{data:arr})
+res.render("index",{data:arr})
 });
 //post
 interface delbody {
@@ -72,7 +74,7 @@ let  plength = parseInt(length);
  
 });
  //delete existing password
- app.delete("/delete",deletePassword)
+ app.delete("/delete/:appName",deletePassword)
 //listening 
 app.listen(port, (err) =>{
     if(err){
