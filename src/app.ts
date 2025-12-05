@@ -48,8 +48,9 @@ app.get("/", async (req: Request, res: Response) => {
    arr.push({app:key[i]! , password:value})
  
 }
+res.send("")
   console.log(arr)
-res.render("index",{data:arr})
+//res.render("index",{data:arr})
 });
 //post
 interface delbody {

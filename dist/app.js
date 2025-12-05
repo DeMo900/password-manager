@@ -40,6 +40,7 @@ var express_1 = require("express");
 var redis = require("redis");
 var crypto_1 = require("crypto");
 var dotenv_1 = require("dotenv");
+var helmet = require("helmet");
 dotenv_1.default.config();
 var port = process.env.PORT;
 var app = (0, express_1.default)();
@@ -57,66 +58,87 @@ db.on('error', function (err) {
     console.log("Redis Client Error ".concat(err));
 });
 // middlewares
+app.set("view engine", "ejs");
+app.use(helmet.default());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-//functions
 var deletePassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var key, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, db.del(req.body.name)];
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, db.get(req.body.appName)];
             case 1:
+                key = _a.sent();
+                if (!key) {
+                    return [2 /*return*/, res.status(404).send("password not found")];
+                }
+                return [4 /*yield*/, db.del(req.body.appName)];
+            case 2:
                 _a.sent();
                 return [2 /*return*/, res.status(200).send("password  deleted")];
+            case 3:
+                err_1 = _a.sent();
+                return [2 /*return*/, res.status(500).send("Internal Server Error")];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 // routes
 app.get("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var arr, key, i, value;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
                 arr = [];
-                return [4 /*yield*/, db.keys("*")];
+                return [4 /*yield*/, db.keys("*")
+                    //console.log(key)
+                ];
             case 1:
-                key = _b.sent();
-                console.log(key);
+                key = _a.sent();
                 i = 0;
-                _b.label = 2;
+                _a.label = 2;
             case 2:
                 if (!(i < key.length)) return [3 /*break*/, 5];
                 return [4 /*yield*/, db.get(key[i])];
             case 3:
-                value = _b.sent();
-                arr.push((_a = {}, _a[key[i]] = value, _a));
-                _b.label = 4;
+                value = _a.sent();
+                arr.push({ app: key[i], password: value });
+                _a.label = 4;
             case 4:
                 i++;
                 return [3 /*break*/, 2];
             case 5:
-                res.send(arr);
+                res.send("");
+                console.log(arr);
                 return [2 /*return*/];
         }
     });
 }); });
-//post
-app.post("/generate", function (req, res) {
-    var _a = req.body, length = _a.length, appName = _a.appName;
-    length = parseInt(length);
-    if (!length || length <= 0) {
-        return res.status(400).send("Invalid length");
-    }
-    if (!appName) {
-        return res.status(400).send("App name is required");
-    }
-    //delete existing password
-    app.delete("/delete", deletePassword);
-    //generate password
-    var password = crypto_1.default.randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
-    db.set(appName, password);
-    return res.status(200).send("password set".concat(appName, ":").concat(password));
-});
+app.post("/generate", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, length, appName, plength, password;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, length = _a.length, appName = _a.appName;
+                plength = parseInt(length);
+                if (!length || plength <= 0) {
+                    return [2 /*return*/, res.status(400).send("Invalid length")];
+                }
+                if (!appName) {
+                    return [2 /*return*/, res.status(400).send("App name is required")];
+                }
+                password = crypto_1.default.randomBytes(Math.ceil(plength / 2)).toString("hex").slice(0, plength);
+                return [4 /*yield*/, db.set(appName, password)];
+            case 1:
+                _b.sent();
+                return [2 /*return*/, res.status(302).redirect("/")];
+        }
+    });
+}); });
+//delete existing password
+app.delete("/delete", deletePassword);
 //listening 
 app.listen(port, function (err) {
     if (err) {
