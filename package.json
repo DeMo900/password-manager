@@ -1,8 +1,15 @@
 {
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "redis": "^5.10.0"
+  },
   "name": "password-manager",
-  "version": "1.0.0",
   "description": "A project for  >Creating a strong password |users can select its length >And assign it to an app //The project will be done using Typescript & redis & express",
-  "main": "app.js",
+  "version": "1.0.0",
+  "main": "./dist/app.js",
   "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,11 +24,9 @@
     "url": "https://github.com/DeMo900/password-manager/issues"
   },
   "homepage": "https://github.com/DeMo900/password-manager#readme",
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "ejs": "^3.1.10",
-    "express": "^5.1.0",
-    "redis": "^5.10.0",
-    "ts-node": "^10.9.2"
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

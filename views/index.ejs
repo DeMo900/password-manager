@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>password-generator</title>
+    <style>
+        body{
+            background-color:#111111;
+            color:#EEEEEE;
+            font-family: monospace;
+        }
+        .container{
+            display:flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 150px;
+        }
+        form{
+            display:inline-block;
+            align-items: center;
+            justify-content: center;
+        }
+        form>input{
+            padding:10px;
+            margin:10px;
+            background-color: #1E1E1E;
+            color:white;
+            border-radius:12px;
+            border: none; 
+            
+        }
+        form>input:focus{
+            outline:none;
+            box-shadow: 0 0 5px #00ADB5;
+        }
+        form>button{
+          background-color: #00ADB5;
+          color:#111111;
+          border-radius: 8px;
+          border:none;
+          font-size: 14px;
+          padding-bottom: 4px;
+          cursor:pointer;
+        }
+        form>button:hover{
+          background-color: #89e3e7;
+          transition: ease-in-out 0.8s;
+          font-size: 15px;
+        }
+        .container>ul{
+            list-style-type: none;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1A1A1A;
+            padding-right: 34px;
+        }
+        .container>ul>li{
+            padding:10px;
+            text-align: center;
+            font-size: small;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <h1>create password</h1>
+    <form action="/generate" method="post">
+        <input type="text" name="appName" placeholder="app name" maxlength="22" required/>
+        <input type="number" name="length" placeholder="length" min="6" max="32" required/>
+        <button type="submit">generate</button>
+    </form>
+   <% if (data.length !== 0) { %>
+  <ul>
+    <% data.forEach((el) => { %>
+      <li id="li"><%= el.app %>:<%= el.password %></li>
+    <% }) %>
+  </ul>
+<% } %>
+
+    </div>
+    <script>
+let li = document.getElementById("li");
+
+
+    console.log("clicked");
+
+    </script>
+</body>
+</html>
