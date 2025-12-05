@@ -13,7 +13,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "node ../dist/app.js",
+    "start": "node ./dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
