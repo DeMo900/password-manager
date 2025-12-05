@@ -1,10 +1,11 @@
 
 //li
-let li = document.getElementById("li");
-let body = li.innerHTML.split(":")[0]
-console.log(body);
+let ul = document.getElementById("ul");
+let body = ul.innerHTML.split(":")[0]
+let splitbody = body.split(">")[1].trim();
+console.log(splitbody);
 li.addEventListener("click", () => {
-    fetch(`/delete/${body}`, {
+    fetch(`/delete/${splitbody}`, {
         method: "DELETE",
     })
     .then(res => {
