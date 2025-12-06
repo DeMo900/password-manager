@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@upstash/redis": "^1.35.7",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.2.1",

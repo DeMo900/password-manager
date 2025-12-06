@@ -9,7 +9,7 @@ const app = express();
 
 // redis client
 const db = redis.createClient({
-  url: "redis://127.0.0.1:6379"
+   url: process.env.DB_URL!
 });
 (async()=>await db.connect())();
 db.on('error',(err)=>{
