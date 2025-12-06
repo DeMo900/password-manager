@@ -35,7 +35,8 @@ const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Res
     return res.status(404).send("password not found")
   }
  await db.del(req.params.appName)
-  return res.status(200).send(`password  deleted`);
+ console.log("deleted")
+  return res.status(200).send("password deleted successfully")
 }catch(err){
   return res.status(500).send("Internal Server Error")
 }
