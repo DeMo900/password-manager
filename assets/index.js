@@ -1,11 +1,10 @@
 
 //li
-let ul = document.getElementById("ul");
-let body = ul.innerHTML.split(":")[0]
-let splitbody = body.split(">")[1].trim();
-console.log(splitbody);
-li.addEventListener("click", () => {
-    fetch(`/delete/${splitbody}`, {
+let li = document.querySelectorAll(".li");
+li.forEach((el)=>{
+let body = el.innerHTML.split(":")[0]
+el.addEventListener("click", () => {
+    fetch(`/delete/${body}`, {
         method: "DELETE",
     })
     .then(res => {
@@ -17,3 +16,7 @@ li.addEventListener("click", () => {
         console.error(err);
     });
 });
+})
+
+
+

@@ -58,6 +58,7 @@
         .container>ul>li{
             padding:10px;
             text-align: center;
+
             font-size: small;
         }
     </style>
@@ -71,10 +72,10 @@
         <button type="submit">generate</button>
     </form>
    <% if (data.length !== 0) { %>
-  
+   
     <% data.forEach((el) => { %>
-      <ul id="ul">  
-      <li id="li"><%= el.app %>:<%= el.password %></li>
+      <ul> 
+      <li class="li"><%= el.app %>:<%= el.password %></li>
       </ul>
     <% }) %>
   
