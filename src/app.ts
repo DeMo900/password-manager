@@ -12,7 +12,7 @@ const db = redis.createClient({
    url: process.env.DB_URL!
 });
 (async()=>await db.connect())();
-db.on('error',(err)=>{
+db.on('error',async (err)=>{
 console.log(`Redis Client Error ${err}`)
 })
 

@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/helmet": "^4.0.0",
+    "@types/node": "^24.10.1",
+    "@types/redis": "^4.0.11",
     "@upstash/redis": "^1.35.7",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
