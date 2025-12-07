@@ -32,6 +32,8 @@ const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Res
   let key = await db.get(req.params.appName)
   console.log(req.params.appName)
   if(!key){
+    console.log("not found")
+    console.log(key)
     return res.status(404).send("password not found")
   }
  await db.del(req.params.appName)
@@ -70,7 +72,7 @@ let  plength = parseInt(length);
  }
  //generate password
  const password = crypto.randomBytes(Math.ceil(plength / 2)).toString("hex").slice(0, plength);
- await db.set(appName, password);
+ await db.set(appName.trim(), password);
  return res.status(302).redirect("/");
  
 });

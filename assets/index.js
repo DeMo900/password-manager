@@ -1,8 +1,9 @@
 
 //li
-let li = document.querySelectorAll(".li");
-li.forEach((el)=>{
-let body = el.innerHTML.split(":")[0]
+let btn = document.querySelectorAll(".delete");
+btn.forEach((el)=>{
+let text = el.parentElement.innerText;
+let body = text.split(":")[0].trim();
 el.addEventListener("click", () => {
     fetch(`/delete/${body}`, {
         method: "DELETE",
