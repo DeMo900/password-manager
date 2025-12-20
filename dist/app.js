@@ -44,16 +44,16 @@ const helmet = __importStar(require("helmet"));
 dotenv_1.default.config();
 const port = process.env.PORT;
 const app = (0, express_1.default)();
+const auth = require("./auth.ts");
 // redis client
-const db = redis.createClient({
-    url: process.env.DB_URL
-});
+const db = redis.createClient();
 (async () => await db.connect())();
 db.on('error', async (err) => {
     console.log(`Redis Client Error ${err}`);
 });
 // middlewares
 app.set("view engine", "ejs");
+app.use(auth);
 app.use(helmet.default());
 app.use(express_1.default.json());
 app.use(express_1.default.static("assets"));
@@ -63,10 +63,13 @@ const deletePassword = async (req, res) => {
         let key = await db.get(req.params.appName);
         console.log(req.params.appName);
         if (!key) {
+            console.log("not found");
+            console.log(key);
             return res.status(404).send("password not found");
         }
         await db.del(req.params.appName);
-        return res.status(200).send(`password  deleted`);
+        console.log("deleted");
+        return res.status(200).send("password deleted successfully");
     }
     catch (err) {
         return res.status(500).send("Internal Server Error");
@@ -95,7 +98,7 @@ app.post("/generate", async (req, res) => {
     }
     //generate password
     const password = crypto_1.default.randomBytes(Math.ceil(plength / 2)).toString("hex").slice(0, plength);
-    await db.set(appName, password);
+    await db.set(appName.trim(), password);
     return res.status(302).redirect("/");
 });
 //delete existing password
