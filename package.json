@@ -9,7 +9,9 @@
     "ejs": "^3.1.10",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
-    "redis": "^5.10.0"
+    "redis": "^5.10.0",
+    "tailwind": "^4.0.0",
+    "tailwindcss": "^3.4.19"
   },
   "name": "password-manager",
   "description": "A project for  >Creating a strong password |users can select its length >And assign it to an app //The project will be done using Typescript & redis & express",
@@ -19,7 +21,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "buildcss":"npx tailwindcss -i ./assets/signup.css -o ./assets/public/signup.css --watch"
+
   },
   "repository": {
     "type": "git",

@@ -3,25 +3,27 @@ import * as redis from "redis";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import * as helmet from "helmet";
+import auth from "./auth"
 dotenv.config();
 const port = process.env.PORT ;
 const app = express();
-
 // redis client
-const db = redis.createClient({
-   url: process.env.DB_URL!
-});
+const db = redis.createClient();
+
 (async()=>await db.connect())();
 db.on('error',async (err)=>{
 console.log(`Redis Client Error ${err}`)
 })
 
 // middlewares
+
 app.set("view engine","ejs")
 app.use(helmet.default())
 app.use(express.json());
 app.use(express.static("assets"));
 app.use(express.urlencoded({ extended: true }));
+app.use(auth)
+
 //functions
   interface delbody {
     appName:string
