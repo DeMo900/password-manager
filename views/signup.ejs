@@ -17,12 +17,20 @@
              <label for="Username" class=" text-gray-300 block mt-2">Email:</label>
           <input type="email" placeholder="Email" class="rounded-2xl bg-gray-700 text-white focus:outline-none h-8 pl-2 w-[240px]">
           <label for="Username" class="block text-gray-300 mt-2">password:</label>
-          <input type="password" placeholder="Password" class="rounded-2xl h-8 pl-2 text-white focus:outline-none bg-gray-700 w-[240px]">
-          <label for="Username" class="block text-gray-300 mt-2">Confirm password:</label>
+          <input type="password" id="password" placeholder="Password" class=" absolute rounded-2xl h-8 pl-2 text-white focus:outline-none bg-gray-700 w-[240px]">
+            <img src="./hide.svg" id="eyeBtn" class="relative left-[215px] top-1">
+          <label for="Username" class="block text-gray-300 mt-5">Confirm password:</label>
           <input type="password" placeholder="Confirm password" class="rounded-2xl pl-2 text-white bg-gray-700 focus:outline-none h-8 w-[240px]">
           <button class="block rounded-lg bg-gray-900 text-white hover:bg-slate-50 hover:text-black hover:transition duration-900 ease-out text-md ml-24 mt-4 w-10 ">Go</button>
         </form>
+          <p class="text-gray-300 font-mono text-center mr-32 mt-2 ">----Or----</p>
+        <div class="flex max-w-[200px] justify-center ml-5 border-t-gray-400  border-t-2">
+          <a href="auth/google">
+        <img src="./Google.png"class="w-10 ">
+          </a>
+        </div>
       </div>
     </div>
+    <script src="signup.js"> </script>
 </body>
 </html>
