@@ -14,6 +14,7 @@
 
 ### 🟩specs
 - ⭐Create an account or enter with your google account 
+- 🔥You get a user friendly error if you typed wrong data while loging in
 - ⭐Type your app name and the password length you want (minimum 6)
 - ⭐You get a list with your apps and their password feel free to copy and paste
 
