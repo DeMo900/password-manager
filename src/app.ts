@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import * as redis from "redis";
+import mongoose from "mongoose"
 import crypto from "crypto";
 import dotenv from "dotenv";
 import * as helmet from "helmet";
@@ -14,7 +15,14 @@ const db = redis.createClient();
 db.on('error',async (err)=>{
 console.log(`Redis Client Error ${err}`)
 })
-
+//mongo client
+mongoose.connect(process.env.MONGO_URL!)
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 // middlewares
 
 app.set("view engine","ejs")
