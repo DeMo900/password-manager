@@ -5,6 +5,9 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import * as helmet from "helmet";
 import auth from "./auth"
+import Oauthrouter from "./oauth";
+import session from "express-session";
+import { RedisStore } from "connect-redis";
 dotenv.config();
 const port = process.env.PORT ;
 const app = express();
@@ -24,12 +27,21 @@ mongoose.connect(process.env.MONGO_URL!)
     console.error("MongoDB connection error:", err);
   });
 // middlewares
-
+app.use(session({
+  store: new RedisStore({ client: db }),
+  secret: process.env.SESSION_SECRET_!,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 15
+  }
+}));
 app.set("view engine","ejs")
 app.use(helmet.default())
 app.use(express.json());
 app.use(express.static("assets"));
 app.use(express.urlencoded({ extended: true }));
+app.use(Oauthrouter)
 app.use(auth)
 
 //functions
@@ -59,7 +71,9 @@ app.get("/", async (req: Request, res: Response) => {
   let key = await db.keys("*")
   //console.log(key)
   for (let i = 0; i < key.length; i++){
-
+if(key[i]!.startsWith("sess:")){
+continue;
+}
   let value = await db.get(key[i]!)
    arr.push({app:key[i]! , password:value})
  
