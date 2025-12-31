@@ -8,6 +8,7 @@
     "bcrypt": "^6.0.0",
     "bcrypt-ts": "^8.0.0",
     "connect-redis": "^9.0.0",
+    "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.2.1",
@@ -30,7 +31,7 @@
     "build": "tsc",
     "start": "node ./dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "buildcss": "npx tailwindcss -i ./assets/tailwindinput.css -o ./assets/public/signup.css --watch"
+    "buildcss": "npx tailwindcss -i ./assets/tailwindinput.css -o ./assets/public/emailverify.css --watch"
   },
   "repository": {
     "type": "git",

@@ -110,3 +110,4 @@ app.listen(port, (err) =>{
     }
     console.log(`server is listening to port ${port} `)
 })
+export default db ;

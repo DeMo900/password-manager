@@ -1,7 +1,7 @@
 import express, { Request,Response } from 'express'; 
 import passport from 'passport';
 import * as google from "passport-google-oauth20";
-import um from "./model"
+import {userModel} from "./model"
 require("dotenv").config()
 const Oauthrouter  = express.Router()
 passport.use(new google.Strategy({
@@ -20,11 +20,11 @@ async(accessToken, refreshToken, profile, done) => {
         : undefined;
         if(!email) return done(new Error('No email received'));
 
-    const user = await um.findOne({$or:[{googleId:profile.id},{email:email}]});
+    const user = await userModel.findOne({$or:[{googleId:profile.id},{email:email}]});
     if(user){
         return done(null, user);
     }
-    const newu = new um({
+    const newu = new userModel({
         googleId: profile.id,
         username: profile.displayName,
         email: email
@@ -41,7 +41,7 @@ passport.serializeUser((user:any, done) => {
     done(null, user._id);
 });
 passport.deserializeUser(async (id:any, done) => {
-    const user = await um.findById(id);
+    const user = await userModel.findById(id);
     done(null,user);
 });
 
