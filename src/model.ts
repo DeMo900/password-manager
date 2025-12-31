@@ -6,5 +6,16 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true ,unique:true},
     password: { type: String}
 })
-const um = mongoose.model("User", userSchema);
-export default um;
+const userModel = mongoose.model("User", userSchema);
+
+
+const tokenSchema = new mongoose.Schema({
+    email : { type: String, required: true},
+    token: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now, expires: "1h" }
+});
+
+const tokenModel = mongoose.model("Token", tokenSchema);
+
+export { userModel, tokenModel };
+
