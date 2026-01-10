@@ -38,26 +38,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const redis = __importStar(require("redis"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const crypto_1 = __importDefault(require("crypto"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const helmet = __importStar(require("helmet"));
+const auth_1 = __importDefault(require("./auth"));
+const oauth_1 = __importDefault(require("./oauth"));
+const express_session_1 = __importDefault(require("express-session"));
+const connect_redis_1 = require("connect-redis");
 dotenv_1.default.config();
 const port = process.env.PORT;
 const app = (0, express_1.default)();
-const auth = require("./auth.ts");
 // redis client
 const db = redis.createClient();
 (async () => await db.connect())();
 db.on('error', async (err) => {
     console.log(`Redis Client Error ${err}`);
 });
+//mongo client
+mongoose_1.default.connect(process.env.MONGO_URL)
+    .then(() => {
+    console.log("MongoDB connected");
+})
+    .catch((err) => {
+    console.error("MongoDB connection error:", err);
+});
 // middlewares
+app.use((0, express_session_1.default)({
+    store: new connect_redis_1.RedisStore({ client: db }),
+    secret: process.env.SESSION_SECRET_,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 1000 * 60 * 15
+    }
+}));
 app.set("view engine", "ejs");
-app.use(auth);
 app.use(helmet.default());
 app.use(express_1.default.json());
 app.use(express_1.default.static("assets"));
 app.use(express_1.default.urlencoded({ extended: true }));
+app.use(oauth_1.default);
+app.use(auth_1.default);
 const deletePassword = async (req, res) => {
     try {
         let key = await db.get(req.params.appName);
@@ -81,6 +103,9 @@ app.get("/", async (req, res) => {
     let key = await db.keys("*");
     //console.log(key)
     for (let i = 0; i < key.length; i++) {
+        if (key[i].startsWith("sess:")) {
+            continue;
+        }
         let value = await db.get(key[i]);
         arr.push({ app: key[i], password: value });
     }
@@ -111,4 +136,5 @@ app.listen(port, (err) => {
     }
     console.log(`server is listening to port ${port} `);
 });
+exports.default = db;
 //# sourceMappingURL=app.js.map

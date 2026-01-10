@@ -8,6 +8,7 @@ import auth from "./auth"
 import Oauthrouter from "./oauth";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
+import cookieParser from "cookie-parser"
 dotenv.config();
 const port = process.env.PORT ;
 const app = express();
@@ -36,6 +37,7 @@ app.use(session({
     maxAge: 1000 * 60 * 15
   }
 }));
+app.use(cookieParser());
 app.set("view engine","ejs")
 app.use(helmet.default())
 app.use(express.json());

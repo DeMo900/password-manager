@@ -1,5 +1,5 @@
 const passwordInput = document.getElementById("password")
-const eyeBtn = document.getElementById("eyeBtn")
+const eyeBtn = document.getElementById("eyeimg")
 let turn = "password"
 eyeBtn.addEventListener("click",(el)=>{
   if(turn === "password"){
