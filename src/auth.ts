@@ -6,7 +6,6 @@ import validation from "./validation"
 import { body ,validationResult} from "express-validator"
 import {createTransport} from "nodemailer"
 import crypto from "crypto";    
-import { $ZodEmail } from "zod/v4/core"
 const router = express.Router()
 // Get signup
 router.get("/signup",(req:Request,res:Response)=>{
@@ -47,12 +46,12 @@ res.redirect("/login")
     return res.status(500).send("Internal Server Error")
 } 
 })
-router.post("/login",async(req:Request,res:Response)=>{
+router.post("/login",body("password").isStrongPassword().withMessage("Password must be at least 8 characters long and contain a mix of letters, numbers, and symbols."),
+body("email").isEmail().withMessage("invalid email format")
+,async(req:Request,res:Response)=>{
 const {email,password} = req.body;
-if(password.length>16 )return res.status(400).render("login",{error:"invalid password data"});
-const pattern = /^(?!\.)(?!\.*\.\.)([\na-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i;
-    
-if(pattern.test(email) === false) return  res.status(400).render("login",{error:"invalid email"});
+const results = validationResult(req);
+if(!results.isEmpty()) return res.status(400).render("login",{error:results.array()[0]!.msg});
 try{
 //checking if user exists
 const user = await userModel.findOne({email}).select("-username");
@@ -65,16 +64,18 @@ if(!isCorrect) return res.status(401).render("login",{error:"wrong password"});
 (req.session as any).user ={id:user._id}
 res.redirect("/");
 }catch(err){
-    return res.status(500).send("error");
+    console.log(`error from post login ${err}`)
+    return res.status(500).render("500");
 }
 })
 //post verify email
-router.post("/verifyemail",async(req:Request,res:Response)=>{
+router.post("/verifyemail",body("email").isEmail().withMessage("invalid email format")
+,async(req:Request,res:Response)=>{
     //validation
 const {email} = req.body;
 const oldCookie = req.cookies.otpToken
-const pattern = /^(?!\.)(?!\.*\.\.)([\na-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i;
-if(!email.match(pattern)) return res.status(400).json({error:"invalid email"});
+const results = validationResult(req);
+if(!results.isEmpty()) return res.status(400).render("login",{error:results.array()[0]!.msg});
 try{
     if(oldCookie){
         //checking if user was on Blacklist
@@ -137,7 +138,7 @@ res.cookie("otpToken", otpToken,
     { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 }
 );
 //sending email
-createTransport({
+await createTransport({
     host: "smtp.gmail.com", 
   port: 465,
     auth: {
@@ -150,9 +151,10 @@ createTransport({
     subject: "Verify your email",
     text: `Your verification code is ${otp}`,
 });
-res.json({message:"code sent to email",code:otp});
+res.json({message:"code sent to email"});
 }catch(err){
-    return res.status(500).send("error");
+    console.log(`error from vetify email ${err}`)
+    return res.status(500).render("500");
 }
 })
 //checking if code exists
@@ -186,8 +188,8 @@ await db.set(`passwordToken:${passwordToken}`, email,{EX: 5 * 60});//5minutes
 res.cookie("passwordToken", passwordToken, { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 });
 res.json({ msg:"otp confirmed" });
 }catch(err){
-    console.log(err);
-    return res.status(500).send("error");
+     console.log(`error from vetify code ${err}`)
+    return res.status(500).render("500");
 }
 })
 //reset password
@@ -213,7 +215,8 @@ await db.del(`passwordToken:${token}`);
 res.clearCookie("passwordToken");
 res.redirect("/login");
 }catch(err){
-    return res.status(500).send("error");
+    console.log(`error from password reset ${err}`)
+    return res.status(500).render("500");
 }
 })
 //resend
