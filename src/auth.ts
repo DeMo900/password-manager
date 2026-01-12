@@ -46,7 +46,7 @@ res.redirect("/login")
     return res.status(500).send("Internal Server Error")
 } 
 })
-router.post("/login",body("password").isStrongPassword().withMessage("Password must be at least 8 characters long and contain a mix of letters, numbers, and symbols."),
+router.post("/login",body("password").notEmpty().withMessage("Password is required"),
 body("email").isEmail().withMessage("invalid email format")
 ,async(req:Request,res:Response)=>{
 const {email,password} = req.body;
@@ -160,9 +160,9 @@ res.json({message:"code sent to email"});
 //checking if code exists
 router.post("/verifycode",async(req:Request,res:Response)=>{
 const {code} = req.body;
-const parsed = parseInt(code);
+const pattern = /^\d{6}$/
 //validation
-if(!code || parsed.toString().length !== 6) return res.status(400).json({error:"code must be 6 digits"});
+if(!code || !pattern.test(code)) return res.status(400).json({error:"code must be 6 digits"});
 try{
     //get token
     const otpToken = req.cookies.otpToken
