@@ -85,29 +85,46 @@ try{
     if(requests === 1){
         //expire after 60s
         console.log("1st request was made")
-        db.expire(`otpRequests:${email}`, 60);
+      await db.expire(`otpRequests:${email}`, 60);
     }
     if(requests>1 && requests <5){
 console.log(requests)
 return res.status(429).json({error:"too many requests, please try again later"});
     }
 if (requests >=5){
+    //levels
+    enum blockLevels {
+        LOW = 600,
+        MEDIUM = 3600,
+        HIGH = 86400
+    }
+type blockOptions = "LOW" | "MEDIUM" | "HIGH";
     //checking for past record
     if(await db.exists(`record:${email}`) && await db.exists(`blackListed:${email}`)===0){
-    const recordTime = await db.get(`record:${email}`); //seconds
-    const parsedTime = parseInt(recordTime!);
-    const recordTimeSeconds = parsedTime*60;
-    //if record blacklist with 3x the last blacklisting time
-    db.set(`blackListed:${email}`,new Date(Date.now() + parsedTime*3).toString(), {EX: recordTimeSeconds*3});
+    const recordLevel = await db.get(`record:${email}`)as blockOptions | null; 
+        switch(recordLevel){
+            case "LOW":
+           await db.set(`blackListed:${email}`, "MEDIUM", {EX: blockLevels.MEDIUM});
+                await db.set(`record:${email}`, "MEDIUM", {EX: 86400});
+                break;
+            case "MEDIUM":
+                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {EX: 86400});
+                break;
+            case "HIGH":
+                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {EX: 86400});
+                break;
+        }
+        return res.status(429).json({error:"you were blocked,try again later"});
     }
    //if no record create one and blacklist
-    db.set(`blackListed:${email}`,new Date(Date.now() + 600000).toString(), {EX: 600});
-    //ttl
-    const ttl = await db.ttl(`blackListed:${email}`);
-    db.set(`record:${email}`, ttl, {EX: 68400});
+    await db.set(`blackListed:${email}`,"LOW", {EX: blockLevels.LOW});
+    //setting record
+    await db.set(`record:${email}`, "LOW" , {EX:blockLevels.LOW});
     return res.status(429).json({error:"you were blocked,try again later"});
-}
- db.del(`otpToken:${oldCookie}`);
+    }
+ await db.del(`otpToken:${oldCookie}`);
 res.clearCookie("otpToken");
 console.log("cookie cleared")
 
@@ -219,11 +236,5 @@ res.redirect("/login");
     return res.status(500).render("500");
 }
 })
-//resend
-router.post("/resend",(req:Request,res:Response)=>{
-    //check for the cookie token 
-    //check if key exists
-    //clear cookies and keys
-    //send and generate new token and otp 
-})
+
 export default router;

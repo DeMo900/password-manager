@@ -34,7 +34,7 @@
     "build": "tsc",
     "start": "node ./dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "buildcss": "npx tailwindcss -i ./assets/tailwindinput.css -o ./assets/public/emailverify.css --watch"
+    "buildcss": "npx tailwindcss -i ./assets/tailwindinput.css -o ./assets/public/signup.css --watch"
   },
   "repository": {
     "type": "git",
