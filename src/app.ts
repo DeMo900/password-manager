@@ -9,6 +9,7 @@ import Oauthrouter from "./oauth";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser"
+import {userModel,passwordModel}  from "./model"
 dotenv.config();
 const port = process.env.PORT ;
 const app = express();
@@ -53,15 +54,16 @@ app.use(auth)
   interface delparam extends delbody{}
 const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Response) => {
   try{
-  let key = await db.get(req.params.appName)
-  console.log(req.params.appName)
-  if(!key){
-    console.log("not found")
-    console.log(key)
+    const appName = req.params.appName;
+    //deleting cache
+    const userId = (req.session as any).user._id;//geting user from the session
+    await db.del(`userId:${userId}`)//deleting
+
+  const find = await passwordModel.findOne({appname:appName})
+  if(!find){
     return res.status(404).send("password not found")
   }
- await db.del(req.params.appName)
- console.log("deleted")
+ await passwordModel.deleteOne({appname:appName,id:userId})
   return res.status(200).send("password deleted successfully")
 }catch(err){
   return res.status(500).send("Internal Server Error")
@@ -69,38 +71,57 @@ const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Res
 }
 // routes
 app.get("/", async (req: Request, res: Response) => {
-   let arr:object[] = []
-  let key = await db.keys("*")
-  //console.log(key)
-  for (let i = 0; i < key.length; i++){
-if(key[i]!.startsWith("sess:")){
-continue;
+  try{
+   interface UserData {
+     id: string;
+     appname: string;
+     password: string;
+    
+   }
+const userId = (req.session as any).user._id;
+  const userData : string | null = await db.get(`userId:${userId}`);
+if (userData) {
+  // User exists in Redis
+  const parsedData: UserData[] = JSON.parse(userData);
+ return res.render("index",{data:parsedData});
 }
-  let value = await db.get(key[i]!)
-   arr.push({app:key[i]! , password:value})
- 
+const passwords: UserData[] = await passwordModel.find({ id: userId });
+await db.set(`userId:${userId}`, JSON.stringify(passwords),{EX:600});//after 10 minutes
+return res.render("index",{data:passwords});
+  }catch(err){
+  console.error("Error fetching user data:", err);
+  return res.status(500).send("Internal Server Error");
 }
-  console.log(arr)
-res.render("index",{data:arr})
 });
 //post
-interface delbody {
-length:string,
+interface body {
+  length: string;
+  appName: string;
 }
-app.post("/generate", async(req: Request<{},{},delbody>, res: Response) => {
- let { length, appName } = req.body;
-let  plength = parseInt(length);
- if (!length || plength <= 0) {
+app.post("/generate", async(req: Request<{},{},body>, res: Response) => {
+ const { length, appName } = req.body;
+const userId = (req.session as any).user._id;
+//validation
+const parsedLength = parseInt(length);
+ if (!length || parsedLength <= 0) {
    return res.status(400).send("Invalid length");
  }
  if (!appName) {
    return res.status(400).send("App name is required");
  }
  //generate password
- const password = crypto.randomBytes(Math.ceil(plength / 2)).toString("hex").slice(0, plength);
- await db.set(appName.trim(), password);
+ const password : string = crypto.randomBytes(Math.ceil(parsedLength / 2)).toString("hex").slice(0, parsedLength);
+ //storing password
+await passwordModel.insertOne(
+  {
+    id: userId,
+    appname: appName,
+    password
+  }
+);
+ //deleting caching
+ await db.del(`userId:${userId}`);
  return res.status(302).redirect("/");
- 
 });
  //delete existing password
  app.delete("/delete/:appName",deletePassword)

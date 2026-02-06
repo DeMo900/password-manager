@@ -2,12 +2,15 @@
 module.exports = {
   content: [
     "./views/login.ejs",
+    "./views/index.ejs",
     "./views/signup.ejs",
     "./views/emailverify.ejs",
-    "./assets/tailwindinput.css.{html,js,ts,jsx,tsx}",
+    "./assets/tailwindinput.css.{html,ejs,js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {colors: {
+        'bodyColor': '#0F172A',
+    }},
   },
   plugins: [],
 }
