@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import isAllowed from "./middlewares";
 import * as redis from "redis";
 import mongoose from "mongoose"
 import crypto from "crypto";
@@ -64,30 +65,33 @@ const deletePassword = async (req: Request<delparam,delparam,delparam>, res: Res
     return res.status(404).send("password not found")
   }
  await passwordModel.deleteOne({appname:appName,id:userId})
-  return res.status(200).send("password deleted successfully")
+  return res.status(200).json({url:"/"})
 }catch(err){
   return res.status(500).send("Internal Server Error")
 }
 }
 // routes
-app.get("/", async (req: Request, res: Response) => {
+app.get("/",isAllowed, async (req: Request, res: Response) => {
   try{
    interface UserData {
+    createdAt: number;
      id: string;
      appname: string;
      password: string;
-    
    }
 const userId = (req.session as any).user._id;
   const userData : string | null = await db.get(`userId:${userId}`);
 if (userData) {
   // User exists in Redis
   const parsedData: UserData[] = JSON.parse(userData);
- return res.render("index",{data:parsedData});
+ return res.render("index",{data:parsedData,recent:parsedData[0]});
 }
-const passwords: UserData[] = await passwordModel.find({ id: userId });
+const passwords = await passwordModel.find({ id: userId }).sort({_id:-1})
+if(passwords.length===0){
+  return res.render("index",{data:[],recent:{appname:"AppName",password:"Password"}})  
+}
 await db.set(`userId:${userId}`, JSON.stringify(passwords),{EX:600});//after 10 minutes
-return res.render("index",{data:passwords});
+return res.render("index",{data:passwords,recent:passwords[0]})
   }catch(err){
   console.error("Error fetching user data:", err);
   return res.status(500).send("Internal Server Error");
@@ -125,6 +129,33 @@ await passwordModel.insertOne(
 });
  //delete existing password
  app.delete("/delete/:appName",deletePassword)
+ //clearing
+ app.delete("/clear",async(req:Request,res:Response)=>{
+  try{
+  //getting user id
+  const userId = (req.session as any).user._id;
+  //deleting all passwords associated with that id
+  await passwordModel.deleteMany({id:userId})
+  //removing cache
+  await db.del(`userId:${userId}`)
+  //returning json with the  url /
+  return res.json({url:"/"}) 
+  }catch(err){
+  return res.status(500).send("internal servr error")
+  }
+ })
+ //loging out
+ app.post("/logout",(req:Request,res:Response)=>{
+  //clearing session
+  req.session.destroy((err)=>{
+    if(err){
+      return res.status(500).send("error while logging out")
+    }
+  })
+  res.clearCookie("connect-ssid")
+  //redirect
+return res.status(200).json({url:"/"})
+ })
 //listening 
 app.listen(port, (err) =>{
     if(err){

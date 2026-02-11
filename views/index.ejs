@@ -7,42 +7,60 @@
     <title>Password master</title>
 </head>
 <body class= "bg-bodyColor">
-  <nav class="bg-bodyColor border-b-[0.2px] border-b-gray-700 h-[73px] flex items-center sticky top-0 px-16">
-  <div class="text-white font-bold text-lg">Password Master</div>
-  <div class="ml-auto flex gap-6 items-center">
-    <span class="border-l border-l-gray-700 pl-8 mr-[-10px]">
-        <h2 class="text-white font-semibold ">Username</h2>
-        <p class="text-slate-400 font-thin ">Basic Plan</p>
+  <nav class="bg-bodyColor border-b-[0.2px] border-b-gray-700 h-[73px] flex items-center sticky top-0 px-4 sm:px-8 md:px-16">
+  <div class="text-white font-bold text-sm sm:text-base md:text-lg">Password Master</div>
+  <div class="ml-auto flex gap-2 sm:gap-4 md:gap-6 items-center">
+    <span class="border-l border-l-gray-700 pl-2 sm:pl-4 md:pl-8 mr-[-10px] hidden sm:block">
+        <h2 class="text-white font-semibold text-xs sm:text-sm md:text-base">Username</h2>
+        <p class="text-slate-400 font-thin text-xs sm:text-sm">Basic Plan</p>
     </span>
-         <img src="./profile.svg" class="mr-4" alt="">
-    <img src="./logout.svg" alt="">
+         <img src="./profile.svg" class="mr-2 sm:mr-4 w-6 sm:w-8 md:w-auto" alt="">
+    <img src="./logout.svg" class="w-5 sm:w-6 md:w-auto cursor-pointer" alt="Logout" id="logout">
   </div>
 </nav>
-<div class = "mt-12 mb-6 ml-14">
-   <h2 class="text-white font-semibold mb-1 text-3xl">Dashboard: Password Generator</h2>
-        <p class="text-slate-500 text-md">Create strong, unique passwords for your applications.</p>
+<div class = "mt-6 sm:mt-8 md:mt-12 mb-4 sm:mb-5 md:mb-6 ml-4 sm:ml-8 md:ml-14">
+   <h2 class="text-white font-semibold mb-1 text-xl sm:text-2xl md:text-3xl">Dashboard: Password Generator</h2>
+        <p class="text-slate-500 text-sm sm:text-base md:text-md">Create strong, unique passwords for your applications.</p>
         </div>
-        <div class="flex w-full justify-center ml-10">
-        <div class="w-[878px] h-[610px] ml-[-460px] flex justify-center bg-slate-800 rounded-xl shadow-sm border px-6 pt-10 border-slate-700 ">
+        <div class="flex w-full justify-between item-center ml-4 sm:ml-6 md:ml-10 pr-4 sm:pr-6 md:pr-0">
+        <div class="w-[878px] h-[610px] flex bg-slate-800 rounded-xl shadow-sm border px-4 sm:px-5 md:px-6 pt-6 sm:pt-8 md:pt-10 pb-6 sm:pb-8 md:pb-10 border-slate-700 ">
             <div class="w-full ">
               <form action="/generate" method="POST">
-                <label for="appName" class="mb-1 block text-slate-400">APPLICATION NAME</label>
-                <input name="appName" type="text" placeholder="e.g. MyServiceAccount" class=" bg-bodyColor border-none outline-blue-800 p-4 w-full h-18 text-white rounded-lg"/>
-                  <label for="length" class="mb-2 mt-14 ml-4 text-xs font-bold block text-slate-400">PASSWORD LENGTH</label>
-                  <div class="item-center flex gap-4">     
-                <input name="length" type="range" min="6" max="16" class="  p-4 w-full h-18 bg-transparent rounded-lg"/>
-                 <div class="text-blue-500 text-xl mt-[-10px] font-bold bg-blue-900/40 h-full p-2">24</div>
+                <label for="appName" class="mb-1 block text-slate-400 sm:text-sm">APPLICATION NAME</label>
+                <input name="appName" type="text" placeholder="e.g. MyServiceAccount" class=" bg-bodyColor border-none outline-blue-800 p-4 sm:p-4 w-full h-18 text-white  sm:text-base rounded-lg"/>
+                  <label for="length" class="mb-2 mt-14 sm:mt-10 md:mt-14 ml-4 sm:ml-3 md:ml-4 text-xs font-bold block text-slate-400">PASSWORD LENGTH</label>
+                  <div class="item-center flex gap-2 sm:gap-3 md:gap-4">     
+                <input name="length" type="range" min="6" max="16" class="  p-2 sm:p-3 md:p-4 w-full h-18 bg-transparent rounded-lg" id="slider"/>
+                 <div class="text-blue-500 text-base sm:text-lg md:text-xl mt-[-10px] font-bold bg-blue-900/40 h-full p-1.5 sm:p-2 whitespace-nowrap" id="slider-value"></div>
                 </div>
-                <button class=" bg-[#135BEC] font-bold text-xl h-16 text-white px-4 py-2 rounded-lg w-full mt-6 hover:bg-blue-700">Generate Password</button>
+                <button class=" bg-[#135BEC] font-bold text-xl sm:text-lg md:text-xl h-16 sm:h-14 md:h-16 text-white px-4 py-2 rounded-lg w-full mt-4 sm:mt-5 md:mt-6 hover:bg-blue-700">Generate Password</button>
           </form> 
-          <div class="w-full h-[149px] mb-8 bg-bodyColor/50 rounded-xl shadow-sm border px-6 border-slate-700 mt-14">
-            <div class=" text-slate-400 text-[12px] font-bold font-mono mt-6">GENERATED PASSWORD</div>
-            <div class="flex justify-between item-center w-full">
-            <div class=" text-white text-2xl font-medium font-mono mt-4 "><span class="text-blue-600">MyServiceAccount:</span>x8#Vp2!qK9@MnR4z </div>
-                   <img src="./copy.svg" class="w-8 cursor-pointer " alt="">
+          <div class="w-full h-auto sm:h-[149px] mb-6 sm:mb-7 md:mb-8 bg-bodyColor/50 rounded-xl shadow-sm border px-4 sm:px-5 md:px-6 py-4 sm:py-5 md:py-0 border-slate-700 mt-8 sm:mt-10 md:mt-14">
+            <div class=" text-slate-400 text-[10px] sm:text-[11px] md:text-[12px] font-bold font-mono mt-2 sm:mt-4 md:mt-6">GENERATED PASSWORD</div>
+            <div class="flex justify-between w-full gap-2 sm:gap-3 md:gap-0">
+            <div class=" text-white text-sm sm:text-lg md:text-2xl font-medium font-mono mt-3 sm:mt-4 md:mt-6 break-all sm:break-normal" id="password"><span class="text-blue-600"><%=recent.appname%>:</span><%=recent.password%></div>
+                  <div class="bg-blue-900/20 p-1.5 sm:p-2 rounded-lg ">
+                    <img src="./copy.svg" class="w-6 sm:w-7 md:w-8 cursor-pointer " id="passwordCopy" alt="">
+                  </div> 
             </div>
          </div>
         </div>
+        </div>
+        <div id="recents" class="fixed right-4 sm:right-6 md:right-10 top-24 sm:top-28 md:top-32 w-[calc(100%-2rem)] sm:w-[280px] md:w-[310px]">
+          <div class="text-white flex justify-between sm:block mb-2">
+            <h3 class="font-bold text-sm sm:text-base">RECENT GENERATIONS</h3>
+            <div id="clear" class="text-blue-500 cursor-pointer hover:text-blue-900 text-sm sm:text-base">clear</div>
+          </div>
+            <% data.forEach((el) => { %>
+              <div class="bg-slate-800 p-2 mb-2 rounded-xl w-full">
+                <p class="text-white font-thin text-sm sm:text-base"><%= el.appname %></p>
+                <p class="text-white font-thin text-sm sm:text-base">
+                  <%= el.password %>
+                  <span><img class="inline w-4 sm:w-5" src="./copy.svg" alt=""></span>
+                  <span id="delete" data-appname="<%= el.appname %>" class="text-red-400 cursor-pointer ml-2">delete</span>
+                </p>
+              </div>
+            <% }) %>
         </div>
         <style>
 /* Chrome, Safari, Edge */
@@ -77,5 +95,6 @@ input[type=range]::-moz-range-thumb {
 }
 
 </style>
+<script src="./main.js"> </script>
 </body>
 </html>
