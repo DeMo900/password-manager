@@ -11,7 +11,7 @@
   <div class="text-white font-bold text-sm sm:text-base md:text-lg">Password Master</div>
   <div class="ml-auto flex gap-2 sm:gap-4 md:gap-6 items-center">
     <span class="border-l border-l-gray-700 pl-2 sm:pl-4 md:pl-8 mr-[-10px] hidden sm:block">
-        <h2 class="text-white font-semibold text-xs sm:text-sm md:text-base">Username</h2>
+        <h2 class="text-white font-semibold text-xs sm:text-sm md:text-base"><%=username%></h2>
         <p class="text-slate-400 font-thin text-xs sm:text-sm">Basic Plan</p>
     </span>
          <img src="./profile.svg" class="mr-2 sm:mr-4 w-6 sm:w-8 md:w-auto" alt="">
@@ -28,6 +28,10 @@
               <form action="/generate" method="POST">
                 <label for="appName" class="mb-1 block text-slate-400 sm:text-sm">APPLICATION NAME</label>
                 <input name="appName" type="text" placeholder="e.g. MyServiceAccount" class=" bg-bodyColor border-none outline-blue-800 p-4 sm:p-4 w-full h-18 text-white  sm:text-base rounded-lg"/>
+                <p class="text-slate-400 ml-2"><% if(data.length === 0 ){%>
+                Generate yout first password!
+                  <%}%>
+                </p>
                   <label for="length" class="mb-2 mt-14 sm:mt-10 md:mt-14 ml-4 sm:ml-3 md:ml-4 text-xs font-bold block text-slate-400">PASSWORD LENGTH</label>
                   <div class="item-center flex gap-2 sm:gap-3 md:gap-4">     
                 <input name="length" type="range" min="6" max="16" class="  p-2 sm:p-3 md:p-4 w-full h-18 bg-transparent rounded-lg" id="slider"/>
@@ -51,6 +55,9 @@
             <h3 class="font-bold text-sm sm:text-base">RECENT GENERATIONS</h3>
             <div id="clear" class="text-blue-500 cursor-pointer hover:text-blue-900 text-sm sm:text-base">clear</div>
           </div>
+          <%if (data.length>4){%>
+<% data = data.slice(0,4) %>
+            <%}%>
             <% data.forEach((el) => { %>
               <div class="bg-slate-800 p-2 mb-2 rounded-xl w-full">
                 <p class="text-white font-thin text-sm sm:text-base"><%= el.appname %></p>

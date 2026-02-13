@@ -33,6 +33,10 @@ clear.addEventListener("click", (el) => {
       }
     })
     .catch((err) => {
+      clear.innerText ="no data to clear"
+      setTimeout(()=>{
+clear.innerText = "clear"
+      },3000)
       console.log(`error from main js while clearing ${err}`);
     });
 })
@@ -76,13 +80,13 @@ fetch("/logout",{
 throw new error ("field to logout")
   }
   return response.json
-}).then((res)=>{
-  console.log(res)
-  if(res.url){
+}).then((response)=>{
+  if(response.url){
   window.location.href = res.url
   }else{
     window.location.reload()
   }
+  
 })  .catch((err) => {
   console.log(`error from main js while loging out ${err}`);
 });

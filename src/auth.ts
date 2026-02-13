@@ -54,16 +54,19 @@ const results = validationResult(req);
 if(!results.isEmpty()) return res.status(400).render("login",{error:results.array()[0]!.msg});
 try{
 //checking if user exists
-const user = await userModel.findOne({email}).select("-username");
+const user = await userModel.findOne({email})
 if(!user){
-   return res.status(409).render("login",{error:"user not found"});
+   return res.status(404).render("login",{error:"user not found"});
 }
 //comparing password
 const isCorrect =await bcrypt.compare(password,user.password!);
 if(!isCorrect) return res.status(401).render("login",{error:"wrong password"});
 
-
-(req.session as any).user = user;
+(req.session as any).user = {
+    username:user.username,
+    _id:user.id,
+    email:user.email
+};
 res.redirect("/");
 }catch(err){
     console.log(`error from post login ${err}`)
