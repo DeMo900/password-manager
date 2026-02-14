@@ -4,9 +4,12 @@ const value = document.getElementById("slider-value")
 const password = document.getElementById("password")
 const passwordCopy = document.getElementById("passwordCopy")
 //changng slider value
+//saving the vale to cookies
+slider.value = localStorage.getItem("DefaultLength")
 value.innerText = slider.value
 slider.addEventListener("input",(el)=>{
     value.innerText = slider.value
+    localStorage.setItem("DefaultLength",slider.value)
 })
 //copying
 passwordCopy.addEventListener("click",(el)=>{

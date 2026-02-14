@@ -106,7 +106,7 @@ if (userData) {
 const passwords = await passwordModel.find({ id: userId }).sort({_id:-1})
 //if no passwrods
 if(passwords.length===0){
-  return res.render("index",{data:[],recent:{appname:"AppName",password:"Password"}})  
+  return res.render("index",{data:[],recent:{appname:"AppName",password:"Password"},username:(req.session as any ).user.username})  
 }
 await db.set(`userId:${userId}`, JSON.stringify(passwords),{EX:600});//after 10 minutes
 //decrypting
