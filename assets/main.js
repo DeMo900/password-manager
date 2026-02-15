@@ -13,9 +13,40 @@ slider.addEventListener("input",(el)=>{
 })
 //copying
 passwordCopy.addEventListener("click",(el)=>{
+  //if no elements 
+if(passwordCopy.dataset.elements.length === 0 ){
+  console.log(passwordCopy.dataset.elements)
+  return ;
+}
+passwordCopy.style.backgroundColor = "black"
     const onlyPassword = password.innerText.split(":")[1]
     navigator.clipboard.writeText(onlyPassword);
+    setTimeout(()=>{
+  passwordCopy.removeAttribute("Style")
+    },1000)
+  
 })
+//list copy
+const list = document.querySelectorAll(".ListpasswordCopy");
+
+list.forEach((item) => {
+  item.addEventListener("click", () => {
+    console.log("clicked");
+
+    item.style.color = "black";
+
+    const password = item.dataset.elements;
+    if (!password) return;
+
+    navigator.clipboard.writeText(password);
+
+    setTimeout(() => {
+      item.removeAttribute("style");
+    }, 1000);
+  });
+});
+
+
 //clear
 const clear = document.getElementById("clear")
 const recents = document.getElementById("recents")
@@ -94,6 +125,7 @@ throw new error ("field to logout")
   console.log(`error from main js while loging out ${err}`);
 });
 })
+
 
 
 

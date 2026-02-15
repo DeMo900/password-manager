@@ -43,14 +43,15 @@
             <div class=" text-slate-400 text-[10px] sm:text-[11px] md:text-[12px] font-bold font-mono mt-2 sm:mt-4 md:mt-6">GENERATED PASSWORD</div>
             <div class="flex justify-between w-full gap-2 sm:gap-3 md:gap-0">
             <div class=" text-white text-sm sm:text-lg md:text-2xl font-medium font-mono mt-3 sm:mt-4 md:mt-6 break-all sm:break-normal" id="password"><span class="text-blue-600"><%=recent.appname%>:</span><%=recent.password%></div>
-                  <div class="bg-blue-900/20 p-1.5 sm:p-2 rounded-lg ">
-                    <img src="./copy.svg" class="w-6 sm:w-7 md:w-8 cursor-pointer " id="passwordCopy" alt="">
+                  <div class="bg-blue-900/20 p-1.5 sm:p-2 rounded-lg"  data-elements = "<%= data %>" id="passwordCopy">
+                    <img src="./copy.svg" class="w-6 sm:w-7 md:w-8 cursor-pointer" alt="">
                   </div> 
             </div>
-         </div>
+            
+              <p class="text-blue-500 text-sm mt-6 animate-pulse"> AES-256 Encrypted  </p>
         </div>
         </div>
-        <div id="recents" class="fixed right-4 sm:right-6 md:right-10 top-24 sm:top-28 md:top-32 w-[calc(100%-2rem)] sm:w-[280px] md:w-[310px]">
+        <div id="recents" class="fixed right-4 sm:right-6 md:right-10 top-24 sm:top-28 md:top-32 w-[calc(100%-2rem)] sm:w-[280px] md:w-[310px] hidden sm:block">
           <div class="text-white flex justify-between sm:block mb-2">
             <h3 class="font-bold text-sm sm:text-base">RECENT GENERATIONS</h3>
             <div id="clear" class="text-blue-500 cursor-pointer hover:text-blue-900 text-sm sm:text-base">clear</div>
@@ -63,12 +64,13 @@
                 <p class="text-white font-thin text-sm sm:text-base"><%= el.appname %></p>
                 <p class="text-white font-thin text-sm sm:text-base">
                   <%= el.password %>
-                  <span><img class="inline w-4 sm:w-5" src="./copy.svg" alt=""></span>
+                  <span><img class="inline cursor-pointer w-4 sm:w-5 ListpasswordCopy" src="./copy.svg" data-elements="<%=el.password%>" alt=""></span>
                   <span id="delete" data-appname="<%= el.appname %>" class="text-red-400 cursor-pointer ml-2">delete</span>
                 </p>
               </div>
+           
             <% }) %>
-        </div>
+         </div>  
         <style>
 /* Chrome, Safari, Edge */
 input[type=range]::-webkit-slider-runnable-track {

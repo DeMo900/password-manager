@@ -149,7 +149,15 @@ const parsedLength = parseInt(length);
    return res.status(400).send("App name is required");
  }
  //generate password
- const password : string = crypto.randomBytes(Math.ceil(parsedLength / 2)).toString("hex").slice(0, parsedLength);
+ const chars = 'abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+=ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ let Array = new Uint32Array(parseInt(length));
+ crypto.getRandomValues(Array)
+ let password = "";
+
+  for (let i = 0; i < parseInt(length); i++) {
+    password += chars[Array[i]! % chars.length];
+  }
+
  //encrypting
  //key
  const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
