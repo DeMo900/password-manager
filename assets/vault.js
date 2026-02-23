@@ -50,7 +50,7 @@ buttons.addEventListener("click", (e) => {
             
               <span >${el.appname}</span>
           </td>
-          <td id="password" data-id="${el._id}" class="px-24 py-4 text-white password">••••••••</td>
+          <td id="password" data-id="${el._id}" class="px-24 py-4 text-white cursor-pointer password">••••••••</td>
           <td class="text-white px-24 py-4">2024-01-01</td>
           <td class="px-24 py-4 text-red-500 cursor-pointer hover:text-red-600">
             <div class="flex justify-center gap-4 items-center">
@@ -114,7 +114,7 @@ tr.innerHTML =`
           
             <span >${el.appname}</span>
         </td>
-        <td  id="password" data-id="${el._id}" class="px-24 py-4 text-white password">••••••••</td>
+        <td  id="password" data-id="${el._id}" class="px-24 py-4 text-white cursor-pointer password">••••••••</td>
         <td class="text-white px-24 py-4">2024-01-01</td>
         <td class="px-24 py-4 text-red-500 cursor-pointer hover:text-red-600">
           <div class="flex justify-center gap-4 items-center">
@@ -136,7 +136,18 @@ const copyImg = document.querySelectorAll(".copy-img");
 tbody.addEventListener("click", (e) => {
 if(e.target.classList.contains("copy-img")){//copying
   const password = e.target.closest("tr").querySelector("td:nth-child(2)").textContent; 
-  navigator.clipboard.writeText(password)
+  //sending request to show password
+  const passwordID = e.target.closest("tr").querySelector("td:nth-child(2)").dataset.id;//getting the password id
+  fetch(`/showpassword/${passwordID}`).then((response)=>{
+  if(!response.ok){
+    throw new Error("failed to fetch password")
+  }
+  return response.json()
+ }).then((data)=>{
+  navigator.clipboard.writeText(data.password)//copying to clipboard
+ }).catch((err)=>{
+  console.log(`error from main js while showing password ${err}`);
+ })
   e.target.src = "./check-mark.svg"
   e.target.style.width = "25px"
   setTimeout(() => {
@@ -197,7 +208,7 @@ tr.innerHTML =`
           
             <span >${el.appname}</span>
         </td>
-        <td id="password" data-id="${el._id}" class="px-24 py-4 text-white password">••••••••</td>
+        <td id="password" data-id="${el._id}" class="px-24 py-4 text-white cursor-pointer password">••••••••</td>
         <td class="text-white px-24 py-4">2024-01-01</td>
         <td class="px-24 py-4 text-red-500 cursor-pointer hover:text-red-600">
           <div class="flex justify-center gap-4 items-center">
