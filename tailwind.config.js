@@ -5,6 +5,7 @@ module.exports = {
     "./views/index.ejs",
     "./views/signup.ejs",
     "./views/emailverify.ejs",
+    "./views/vault.ejs",
     "./assets/tailwindinput.css.{html,ejs,js,ts,jsx,tsx}",
   ],
   theme: {

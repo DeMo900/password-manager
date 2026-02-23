@@ -9,15 +9,15 @@ import crypto from "crypto";
 const router = express.Router()
 // Get signup
 router.get("/signup",(req:Request,res:Response)=>{
-res.render("signup",{error:""})
+return res.render("signup",{error:""})
 })
 // Get login
 router.get("/login",(req:Request,res:Response)=>{
-    res.render("login",{error:""})
+  return  res.render("login",{error:""})
 })
 //get verify
 router.get("/verifyemail",(req:Request,res:Response)=>{
-    res.render("emailverify",{error:""})
+   return res.render("emailverify",{error:""})
 })
 // Post signup
 router.post("/signup", async (req: Request, res: Response) => {

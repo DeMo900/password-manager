@@ -5,9 +5,11 @@ import mongoose from "mongoose"
 import crypto from "crypto";
 import dotenv from "dotenv";
 import * as helmet from "helmet";
+import path from "path"
 import auth from "./auth"
 import Oauthrouter from "./oauth";
 import session from "express-session";
+import flash from "connect-flash"
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser"
 import {userModel,passwordModel}  from "./model"
@@ -39,6 +41,7 @@ app.use(session({
     maxAge: 1000 * 60 * 15
   }
 }));
+app.use(flash())
 app.use(cookieParser());
 app.set("view engine","ejs")
 app.use(helmet.default())
@@ -84,24 +87,31 @@ const userId = (req.session as any).user._id;
 if (userData) {
   // User exists in Redis
   const parsedData: UserData[] = JSON.parse(userData);
+  
   //decrypt from redis
    parsedData.map((current:any,index,array)=>{
     const [encrypted,IV,authTag] = current.password.split(":")
     const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
+    const bufferIV = Buffer.from(IV,"base64")
+    const bufferAuthtag = Buffer.from(authTag,"base64")
+    const bufferEncrypted = Buffer.from(encrypted,"base64")
     const decipher = crypto.createDecipheriv("aes-256-gcm"
       ,key
-      ,Buffer.from(IV, "base64")
+      ,bufferIV
     )
-    decipher.setAuthTag(Buffer.from(authTag, "base64"));
+    decipher.setAuthTag(bufferAuthtag);
     const decrypted = Buffer.concat([
-      decipher.update(Buffer.from(encrypted, "base64")),
+      decipher.update(bufferEncrypted),
       decipher.final()
     ])
     current.password = decrypted.toString("utf8")
     return current 
     })
-    console.log((req.session as any).user)
- return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username});
+    const flash = req.flash("error")
+    if (flash.length>0){
+ return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:flash});
+  }
+ return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:""});
 }
 const passwords = await passwordModel.find({ id: userId }).sort({_id:-1})
 //if no passwrods
@@ -126,30 +136,96 @@ current.password = decrypted.toString("utf8")
 return current 
 })
 //rendering
-return res.render("index",{data:passwords,recent:passwords[0],username:(req.session as any).user.username})
+return res.render("index",{data:passwords,recent:passwords[0],username:(req.session as any).user.username,msg:""})
   }catch(err){
   console.error("Error fetching user data:", err);
   return res.status(500).send("Internal Server Error");
 }
 });
+//vault
+app.get("/vault",isAllowed,(req,res)=>{
+  res.type("html");
+  res.sendFile(path.join(__dirname,"../views/vault.ejs"))
+});
+app.get("/vault/data",isAllowed,async(req:Request,res:Response)=>{
+  //getting data 
+  const userId = (req.session as any).user._id;
+  try{
+const Data = await passwordModel.find({id:userId})
+.sort({_id:-1})//sorting from the most recent
+.skip((parseInt(req.query.page as string)-1)*10) //skipping to the page
+.limit(10)  //limiting
+.select("-id -__v -password")//unselecting fields that are not needed
+const total = await passwordModel.countDocuments({id:userId})
+  if(Data.length===0) return res.json({data:[]})
+//sending data in JSON
+    return res.json({data:Data ,username:(req.session as any).user.username,total:total})
+  }catch(err){
+    return res.status(500).json({msg:"internal server error"})
+  }
+})
+//searching
+app.get("/search",isAllowed,async(req:Request,res:Response)=>{
+  const userId = (req.session as any).user._id;
+  const query = req.query.query as string;
+try{
+  const passwords = await passwordModel.find({id:userId,appname:{$regex:query,$options:"i"}})
+  .select("-id -__v -password")
+  if(passwords.length===0) return res.json({data:[]})
+  
+    return res.json({data:passwords ,username:(req.session as any).user.username,total:passwords.length})
+  }catch(err){
+    return res.status(500).json({msg:"internal server error"})
+  }
+})
+app.get("/showpassword/:id",isAllowed,async(req:Request,res:Response)=>{
+//data
+try{
+  const userId = (req.session as any).user._id;
+  const passwordId = req.params.id;
+  if(!passwordId) return res.status(400).json({msg:"bad request"})
+  const passwordData = await passwordModel.findOne({_id:passwordId,id:userId})
+  if(!passwordData || !userId) return res.status(404).json({msg:"password not found"})
+  //decrypting
+ const [encrypted,IV,authTag] = passwordData.password!.split(":")as [string, string, string];
+const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
+const decipher = crypto.createDecipheriv("aes-256-gcm"
+  ,key
+  ,Buffer.from(IV, "base64")
+)
+decipher.setAuthTag(Buffer.from(authTag, "base64"));
+const decrypted = Buffer.concat([
+  decipher.update(Buffer.from(encrypted, "base64")),
+  decipher.final()
+])
+
+  return res.json({password:decrypted.toString("utf8")})
+}catch(error){
+  return res.status(500).json({msg:"internal server error"})
+}
+})
 //post
 interface body {
   length: string;
   appName: string;
 }
-app.post("/generate", async(req: Request<{},{},body>, res: Response) => {
+app.post("/generate",isAllowed, async(req: Request<{},{},body>, res: Response) => {
  const { length, appName } = req.body;
 const userId = (req.session as any).user._id;
 //validation
 const parsedLength = parseInt(length);
- if (!length || parsedLength <= 0) {
-   return res.status(400).send("Invalid length");
+ if (!length || parsedLength <= 0 || length.length>2) {
+  req.flash("error","Invalid length")
+   return res.status(400).redirect("/")
  }
- if (!appName) {
-   return res.status(400).send("App name is required");
+ const regex = /^[A-Za-z0-9 _-]{3,20}$/;
+ const test = regex.test(appName)
+ if (!appName || !test) {
+  req.flash("error","invalid Length")
+   return res.redirect("/")
  }
  //generate password
- const chars = 'abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+=ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ const chars = 'abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*":;[]{}`~()_+=ABCDEFGHIJKLMNOPQRSTUVWXYZ'
  let Array = new Uint32Array(parseInt(length));
  crypto.getRandomValues(Array)
  let password = "";

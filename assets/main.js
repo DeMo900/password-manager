@@ -3,8 +3,21 @@ const slider = document.getElementById("slider")
 const value = document.getElementById("slider-value")
 const password = document.getElementById("password")
 const passwordCopy = document.getElementById("passwordCopy")
+const generator = document.getElementById("generator")
+const vault = document.getElementById("vault")
 //changng slider value
 //saving the vale to cookies
+if (window.location.pathname === "/vault") {
+  console.log("vault")
+  vault.style.borderBottom = "2px solid blue"
+  generator.style.borderBottom = "none"
+
+} else if (window.location.pathname === "/") {
+  console.log("generator")
+  generator.style.borderBottom = "2px solid blue"
+  vault.style.borderBottom = "none"
+}
+
 slider.value = localStorage.getItem("DefaultLength")
 value.innerText = slider.value
 slider.addEventListener("input",(el)=>{
