@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./public/emailverify.css">
+    <title>Verify</title>
+</head>
+<body class="bg-gray-900  min-h-screen flex items-center justify-center">
+    <div class="rounded-2xl bg-gray-800 max-w-md w-full pl-20 pt-16"><!--main-->
+      <h1 id="text" class="text-zinc-300 font-mono mr-20 font-bold text-3xl mb-10 text-center hover:text-red-950 transition-all duration-[]">Enter the code sent to your email ,please</h1>
+      <div class=" max-w-md  w-full ml-6 pb-16"> <!--input-->
+        <form id="form">
+            <label id="codelabel" for="code" class="block text-gray-300 mt-2">Enter the code:</label>
+          <input id="code" type="text" name="code" id="code" placeholder="Enter the 6-digits code" class="rounded-2xl h-8 pl-2 text-white focus:outline-none bg-gray-700 w-[240px]">
+          <button id="button" type="submit" class="block w-[100px] rounded-[30px] bg-gray-900 text-white hover:bg-slate-50 hover:text-black hover:text-md mt-4 ml-[70px] p-2 hover:pt-4 hover:pb-4 transition-all duration-[0.3s] ease-out">verify</button>
+        </form>
+        <p class="text-red-500 font-mono text-center mr-32  " id="error"></p>
+      </div>
+    </div>
+<script src="./verifyDevice.js"></script>
+</body>
+</html>

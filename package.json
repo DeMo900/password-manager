@@ -3,8 +3,8 @@
     "@types/express": "^5.0.6",
     "@upstash/redis": "^1.35.7",
     "bcrypt": "^6.0.0",
-    "bcrypt-ts": "^8.0.0",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^6.0.0",
     "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
@@ -13,6 +13,7 @@
     "express-session": "^1.18.2",
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
+    "mongo-connect": "^0.0.6",
     "mongoose": "^9.0.2",
     "nodemailer": "^7.0.12",
     "passport": "^0.7.0",
@@ -29,7 +30,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "node ./dist/app.js",
+    "dev": "ts-node src/app.ts",
+    "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "buildcss": "npx tailwindcss -i ./assets/tailwindinput.css -o ./assets/public/vault.css --watch"
   },
@@ -44,6 +46,7 @@
   },
   "homepage": "https://github.com/DeMo900/password-manager#readme",
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/connect-flash": "^0.0.40",
     "@types/cookie-parser": "^1.4.10",
     "@types/express-session": "^1.18.2",

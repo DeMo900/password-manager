@@ -1,7 +1,8 @@
 import express, { Request, Response } from "express";
 import isAllowed from "./middlewares";
-import * as redis from "redis";
+import { Redis } from '@upstash/redis'
 import mongoose from "mongoose"
+import mongoConnect from "connect-mongo"
 import crypto from "crypto";
 import dotenv from "dotenv";
 import * as helmet from "helmet";
@@ -17,12 +18,11 @@ dotenv.config();
 const port = process.env.PORT ;
 const app = express();
 // redis client
-const db = redis.createClient();
+const db = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
-(async()=>await db.connect())();
-db.on('error',async (err)=>{
-console.log(`Redis Client Error ${err}`)
-})
 //mongo client
 mongoose.connect(process.env.MONGO_URL!)
   .then(() => {
@@ -33,7 +33,11 @@ mongoose.connect(process.env.MONGO_URL!)
   });
 // middlewares
 app.use(session({
-  store: new RedisStore({ client: db }),
+  store: mongoConnect.create({
+    mongoUrl: process.env.MONGO_URL!,
+    collectionName: "sessions",
+    ttl: 60 * 60 * 24 // 1 day
+  }),
   secret: process.env.SESSION_SECRET_!,
   resave: false,
   saveUninitialized: false,
@@ -46,7 +50,7 @@ app.use(cookieParser());
 app.set("view engine","ejs")
 app.use(helmet.default())
 app.use(express.json());
-app.use(express.static("assets"));
+app.use(express.static(path.join(__dirname, "../assets")));
 app.use(express.urlencoded({ extended: true }));
 app.use(Oauthrouter)
 app.use(auth)
@@ -82,14 +86,12 @@ app.get("/",isAllowed, async (req: Request, res: Response) => {
      password: string;
    }
 const userId = (req.session as any).user._id;
-  const userData : string | null = await db.get(`userId:${userId}`);
+  const userData: UserData[] | null = await db.get(`userId:${userId}`);
   //check if user was cached
 if (userData) {
   // User exists in Redis
-  const parsedData: UserData[] = JSON.parse(userData);
-  
   //decrypt from redis
-   parsedData.map((current:any,index,array)=>{
+   (userData as UserData[]).forEach((current:any,index,array)=>{
     const [encrypted,IV,authTag] = current.password.split(":")
     const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
     const bufferIV = Buffer.from(IV,"base64")
@@ -105,22 +107,22 @@ if (userData) {
       decipher.final()
     ])
     current.password = decrypted.toString("utf8")
-    return current 
+    
     })
     const flash = req.flash("error")
     if (flash.length>0){
- return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:flash});
+ return res.render("index",{data:userData,recent:userData[0],username:(req.session as any).user.username,msg:flash});
   }
- return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:""});
+ return res.render("index",{data:userData,recent:userData[0],username:(req.session as any).user.username,msg:""});
 }
 const passwords = await passwordModel.find({ id: userId }).sort({_id:-1})
 //if no passwrods
 if(passwords.length===0){
   return res.render("index",{data:[],recent:{appname:"AppName",password:"Password"},username:(req.session as any ).user.username})  
 }
-await db.set(`userId:${userId}`, JSON.stringify(passwords),{EX:600});//after 10 minutes
+await db.set(`userId:${userId}`, passwords,{ex:600});//after 10 minutes
 //decrypting
- passwords.map((current:any,index,array)=>{
+ passwords.forEach((current:any,)=>{
 const [encrypted,IV,authTag] = current.password.split(":")
 const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
 const decipher = crypto.createDecipheriv("aes-256-gcm"
@@ -183,9 +185,19 @@ app.get("/showpassword/:id",isAllowed,async(req:Request,res:Response)=>{
 try{
   const userId = (req.session as any).user._id;
   const passwordId = req.params.id;
-  if(!passwordId) return res.status(400).json({msg:"bad request"})
+  if(!userId) {
+    res.redirect("/login")
+  }
   const passwordData = await passwordModel.findOne({_id:passwordId,id:userId})
-  if(!passwordData || !userId) return res.status(404).json({msg:"password not found"})
+  if(!passwordData || !passwordId || userId !== passwordData.id) {
+  res.clearCookie("connect-ssid")
+    req.session.destroy((err)=>{
+      if(err){
+        console.log(`error while destroying session ${err}`)
+      }
+    })
+    return res.redirect("/login")
+  }  
   //decrypting
  const [encrypted,IV,authTag] = passwordData.password!.split(":")as [string, string, string];
 const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
@@ -215,13 +227,13 @@ const userId = (req.session as any).user._id;
 //validation
 const parsedLength = parseInt(length);
  if (!length || parsedLength <= 0 || length.length>2) {
-  req.flash("error","Invalid length")
+  req.flash("error","App Name is required")
    return res.status(400).redirect("/")
  }
  const regex = /^[A-Za-z0-9 _-]{3,20}$/;
  const test = regex.test(appName)
  if (!appName || !test) {
-  req.flash("error","invalid Length")
+  req.flash("error","invalid App Name")
    return res.redirect("/")
  }
  //generate password

@@ -1,11 +1,13 @@
 import express , {Request,Response} from "express"
-import * as bcrypt from "bcrypt-ts"
+import  bcrypt from "bcrypt"
 import {userModel,tokenModel}  from "./model"
 import db from "./app"
 import validation from "./validation"
 import { body ,validationResult} from "express-validator"
 import {createTransport} from "nodemailer"
 import crypto from "crypto";    
+import { eventEmitter } from "./middlewares"
+import path from "path"
 const router = express.Router()
 // Get signup
 router.get("/signup",(req:Request,res:Response)=>{
@@ -30,6 +32,8 @@ try{
     //checking if user exists
     const user = await userModel.findOne({$or:[{username},{email}]})
     if(user) return res.status(409).render("signup",{error:`user with the same username already exists`})
+        //getting ip
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 //hashing
 const hashedPassword = await bcrypt.hash(password,8)
 //creating user
@@ -37,6 +41,7 @@ const newUser = new userModel({
     username,
     email,
     password: hashedPassword,
+    ip,
 })
 await newUser.save()//saving
 //redirect
@@ -49,10 +54,10 @@ res.redirect("/login")
 router.post("/login",body("password").notEmpty().withMessage("Password is required"),
 body("email").isEmail().withMessage("invalid email format")
 ,async(req:Request,res:Response)=>{
-const {email,password} = req.body;
 const results = validationResult(req);
 if(!results.isEmpty()) return res.status(400).render("login",{error:results.array()[0]!.msg});
 try{
+const {email,password} = req.body;
 //checking if user exists
 const user = await userModel.findOne({email})
 if(!user){
@@ -62,15 +67,32 @@ if(!user){
 const isCorrect =await bcrypt.compare(password,user.password!);
 if(!isCorrect) return res.status(401).render("login",{error:"wrong password"});
 
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+
+   if(user.ip[0] !== ip){
+  console.log("ip changed,updating")
+ eventEmitter.emit("ipChange",user,ip);//emit event to send email and store code in redis
+  //storing user without verfication
+   (req.session as any).user = {
+    username:user.username,
+    _id:user.id,
+    email:user.email,
+    verified:false
+};
+return res.redirect("/verifyDevice")
+}
 (req.session as any).user = {
     username:user.username,
     _id:user.id,
-    email:user.email
+    email:user.email,
+    verified:true,
+    lastActive:Date.now()
 };
+    
 res.redirect("/");
 }catch(err){
     console.log(`error from post login ${err}`)
-    return res.status(500).render("500");
+    return res.status(500).send("Internal Server Error")
 }
 })
 //post verify email
@@ -109,24 +131,24 @@ type blockOptions = "LOW" | "MEDIUM" | "HIGH";
     const recordLevel = await db.get(`record:${email}`)as blockOptions | null; 
         switch(recordLevel){
             case "LOW":
-           await db.set(`blackListed:${email}`, "MEDIUM", {EX: blockLevels.MEDIUM});
-                await db.set(`record:${email}`, "MEDIUM", {EX: 86400});
+           await db.set(`blackListed:${email}`, "MEDIUM", {ex: blockLevels.MEDIUM});
+                await db.set(`record:${email}`, "MEDIUM", {ex: 86400});
                 break;
             case "MEDIUM":
-                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
-                await db.set(`record:${email}`, "HIGH", {EX: 86400});
+                await db.set(`blackListed:${email}`, "HIGH", {ex: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {ex: 86400});
                 break;
             case "HIGH":
-                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
-                await db.set(`record:${email}`, "HIGH", {EX: 86400});
+                await db.set(`blackListed:${email}`, "HIGH", {ex: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {ex: 86400});
                 break;
         }
         return res.status(429).json({error:"you were blocked,try again later"});
     }
    //if no record create one and blacklist
-    await db.set(`blackListed:${email}`,"LOW", {EX: blockLevels.LOW});
+    await db.set(`blackListed:${email}`,"LOW", {ex: blockLevels.LOW});
     //setting record
-    await db.set(`record:${email}`, "LOW" , {EX:blockLevels.LOW});
+    await db.set(`record:${email}`, "LOW" , {ex:blockLevels.LOW});
     return res.status(429).json({error:"you were blocked,try again later"});
     }
  await db.del(`otpToken:${oldCookie}`);
@@ -154,7 +176,7 @@ email ,
 otp
 };
 //storing
-await db.set(`otpToken:${otpToken}`, JSON.stringify(tokenObject),{EX: 5 * 60});//5minutes
+await db.set(`otpToken:${otpToken}`, JSON.stringify(tokenObject),{ex: 5 * 60});//5minutes
 //seting cookies
 res.cookie("otpToken", otpToken, 
     { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 }
@@ -176,7 +198,7 @@ await createTransport({
 res.json({message:"code sent to email"});
 }catch(err){
     console.log(`error from vetify email ${err}`)
-    return res.status(500).render("500");
+    return res.status(500).send("Internal Server Error")
 }
 })
 //checking if code exists
@@ -193,7 +215,7 @@ try{
 //checking if code exists
 const getData = await db.get(`otpToken:${otpToken}`);
 if(!getData) return res.status(400).json({error:"invalid token"});
-const parsedData = JSON.parse(getData);
+const parsedData = JSON.parse(getData as string);
 //getting email
 const email = parsedData.email;
 //checking if code is right
@@ -204,14 +226,14 @@ await db.del(`otpToken:${otpToken}`);
 res.clearCookie(`otpToken`);
 //generating token
 const passwordToken = crypto.randomUUID();
-await db.set(`passwordToken:${passwordToken}`, email,{EX: 5 * 60});//5minutes
+await db.set(`passwordToken:${passwordToken}`, email,{ex: 5 * 60});//5minutes
 //fuck vscode auto complete
 //sending token in cookies
 res.cookie("passwordToken", passwordToken, { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 });
 res.json({ msg:"otp confirmed" });
 }catch(err){
      console.log(`error from vetify code ${err}`)
-    return res.status(500).render("500");
+    return res.status(500).send("Internal Server Error")
 }
 })
 //reset password
@@ -226,6 +248,9 @@ const errors = validationResult(req);
 if(!errors.isEmpty()) return res.status(400).json({error:"password must be atleast 8 characters long with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character"});
 //getting email
 const email = await db.get(`passwordToken:${token}`);
+if (!email) {
+  return res.status(400).json({ error: "Invalid or expired token" });
+}
 const user = await userModel.findOne({email});
 if(!user) return res.status(404).json({error:"user not found"});
 //updating password
@@ -238,8 +263,45 @@ res.clearCookie("passwordToken");
 res.redirect("/login");
 }catch(err){
     console.log(`error from password reset ${err}`)
-    return res.status(500).render("500");
+    return res.status(500).send("Internal Server Error")
+}
+})
+router.get("/verifyDevice",async(req:Request,res:Response)=>{
+try{
+res.sendFile(path.join(__dirname,"../views/verifyDevice.html"))
+}catch(err){
+    console.log(`error from verify device ${err}`)
+    return res.status(500).send("Internal Server Error")
 }
 })
 
+router.post("/verifyDevice",async(req:Request,res:Response)=>{
+try{
+ //we check if the code exists in redis if yes we push the ip to the ip array in usermodel and set verified to true
+    const {code} = req.body;
+    const userId = (req.session as any).user._id;
+    //checking if code is right
+    const codeFromRedis = await db.get(`ipChange:${userId}`);
+    if(!codeFromRedis) return res.status(400).json({error:"code expired, please login again"});
+    if(code !== codeFromRedis) return res.status(400).json({error:"invalid code"});
+    //updating user ip
+    const user = await userModel.findById(userId);
+    if(!user) return res.status(404).json({error:"user not found"});
+    if (req.headers["x-forwarded-for"] ){
+        user.ip.push(req.headers["x-forwarded-for"] as string);
+    await user.save();
+    }else if(req.socket.remoteAddress){
+        user.ip.push(req.socket.remoteAddress );
+    await user.save();
+
+    }
+    (req.session as any).user.verified = true;//setting verified to true in session
+    //deleting code from redis
+    await db.del(`ipChange:${userId}`);
+   return res.json({msg:"device verified"});
+}catch(err){
+    console.log(`error from verify device ${err}`)
+    return res.status(500).send("Internal Server Error")
+}
+})
 export default router;
