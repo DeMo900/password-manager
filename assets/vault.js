@@ -44,6 +44,7 @@ buttons.addEventListener("click", (e) => {
     //looping through data
     data.data.forEach(el => {
     const tr = document.createElement("tr")
+    const date =  new Date(el.createdAt).toISOString().split("T")[0]  
     
   tr.innerHTML =`
           <td class="px-10 py-4 text-white">
@@ -51,7 +52,7 @@ buttons.addEventListener("click", (e) => {
               <span >${el.appname}</span>
           </td>
           <td id="password" data-id="${el._id}" class="px-24 py-4 text-white cursor-pointer password">••••••••</td>
-          <td class="text-white px-24 py-4">2024-01-01</td>
+          <td class="text-white px-24 py-4">${date}</td>
           <td class="px-24 py-4 text-red-500 cursor-pointer hover:text-red-600">
             <div class="flex justify-center gap-4 items-center">
               <img  src="./copy.svg" alt="Copy" class="hover:bg-slate-400/50 transition duration-300 border-left-2 copy-img">
@@ -108,6 +109,8 @@ fetch(`/vault/data?page=${pageValue.textContent}`).then((response)=>{//temp
   totalResults.textContent = data.total
   //looping through data
   data.data.forEach(el => {
+   const date =  new Date(el.createdAt).toISOString().split("T")[0]
+   
   const tr = document.createElement("tr")
 tr.innerHTML =`
         <td class="px-10 py-4 text-white">
@@ -115,7 +118,7 @@ tr.innerHTML =`
             <span >${el.appname}</span>
         </td>
         <td  id="password" data-id="${el._id}" class="px-24 py-4 text-white cursor-pointer password">••••••••</td>
-        <td class="text-white px-24 py-4">2024-01-01</td>
+        <td class="text-white px-24 py-4">${date}</td>
         <td class="px-24 py-4 text-red-500 cursor-pointer hover:text-red-600">
           <div class="flex justify-center gap-4 items-center">
             <img  src="./copy.svg" alt="Copy" class="hover:bg-slate-400/50 transition duration-300 border-left-2 copy-img">

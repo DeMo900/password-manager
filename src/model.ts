@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique:true },
     email: { type: String, required: true ,unique:true},
     password: { type: String},
-    ip:[]
+    ip:[],
+    createdAt: { type: Date, default: Date.now }
 })
 const userModel = mongoose.model("User", userSchema);
 
@@ -21,7 +22,8 @@ const tokenModel = mongoose.model("Token", tokenSchema);
 const passwordSchema = new mongoose.Schema({
     id: { type: String, required: true },
     appname:{ type: String, required: true },
-    password: { type: String}
+    password: { type: String},
+    createdAt: { type: Date, default: Date.now }
 })
 passwordSchema.index({ appname: 1 });
  passwordSchema.index({ id: 1 }); 
