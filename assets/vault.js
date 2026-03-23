@@ -41,6 +41,7 @@ buttons.addEventListener("click", (e) => {
       return;
     }
     tbody.innerHTML = ""
+    username.textContent = data.username
     //looping through data
     data.data.forEach(el => {
     const tr = document.createElement("tr")
@@ -204,6 +205,7 @@ searchInput.addEventListener("input", () => {
   }).then((data)=>{
     tbody.innerHTML = ""
     totalResults.textContent = data.total
+    username.textContent = data.username
     data.data.forEach(el => {
       const date =  new Date(el.createdAt).toISOString().split("T")[0]
       const tr = document.createElement("tr")
