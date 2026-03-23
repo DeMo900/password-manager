@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import isAllowed from "./middlewares";
-import { Redis } from '@upstash/redis'
+import {createClient} from "redis";
 import mongoose from "mongoose"
 import mongoConnect from "connect-mongo"
 import crypto from "crypto";
@@ -18,11 +18,14 @@ dotenv.config();
 const port = process.env.PORT ;
 const app = express();
 // redis client
-const db = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
-
+const db = createClient();
+//connect 
+  db.connect();
+  //store
+  const store = new RedisStore({
+    client:db,
+    ttl:3600
+  })
 //mongo client
 mongoose.connect(process.env.MONGO_URL!)
   .then(() => {
@@ -33,11 +36,7 @@ mongoose.connect(process.env.MONGO_URL!)
   });
 // middlewares
 app.use(session({
-  store: mongoConnect.create({
-    mongoUrl: process.env.MONGO_URL!,
-    collectionName: "sessions",
-    ttl: 60 * 60 * 24 // 1 day
-  }),
+  store,
   secret: process.env.SESSION_SECRET_!,
   resave: false,
   saveUninitialized: false,
@@ -86,12 +85,14 @@ app.get("/",isAllowed, async (req: Request, res: Response) => {
      password: string;
    }
 const userId = (req.session as any).user._id;
-  const userData: UserData[] | null = await db.get(`userId:${userId}`);
+  const userData = await db.get(`userId:${userId}`);
+  const parsedData : UserData[]  = JSON.parse(userData!)
+  console.log(parsedData)
   //check if user was cached
 if (userData) {
   // User exists in Redis
   //decrypt from redis
-   (userData as UserData[]).forEach((current:any,index,array)=>{
+   (parsedData as UserData[]).forEach((current:any,index,array)=>{
     const [encrypted,IV,authTag] = current.password.split(":")
     const key = Buffer.from(process.env.ENCRYPTION_KEY!, "base64");
     const bufferIV = Buffer.from(IV,"base64")
@@ -111,16 +112,17 @@ if (userData) {
     })
     const flash = req.flash("error")
     if (flash.length>0){
- return res.render("index",{data:userData,recent:userData[0],username:(req.session as any).user.username,msg:flash});
+ return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:flash});
   }
- return res.render("index",{data:userData,recent:userData[0],username:(req.session as any).user.username,msg:""});
+ return res.render("index",{data:parsedData,recent:parsedData[0],username:(req.session as any).user.username,msg:""});
 }
 const passwords = await passwordModel.find({ id: userId }).sort({_id:-1})
+const stringPasswords = JSON.stringify(passwords)
 //if no passwrods
 if(passwords.length===0){
   return res.render("index",{data:[],recent:{appname:"AppName",password:"Password"},username:(req.session as any ).user.username})  
 }
-await db.set(`userId:${userId}`, passwords,{ex:600});//after 10 minutes
+await db.set(`userId:${userId}`, stringPasswords,{EX:600});//after 10 minutes
 //decrypting
  passwords.forEach((current:any,)=>{
 const [encrypted,IV,authTag] = current.password.split(":")

@@ -41,6 +41,8 @@ async(accessToken, refreshToken, profile, done) => {
 interface IUser {
   _id: String,
   email: String,
+  username:String,
+  verified: boolean,
 }
 passport.serializeUser((user:any, done) => {
     done(null, user._id);
@@ -58,10 +60,17 @@ passport.authenticate('google', { failureRedirect: '/' }),
 (req, res) => {
     // Successful authentication, save user info to session
     if (req.user) {
-  (req.session as any).user= (req.user as IUser);
-} else {
+  const user = req.user as IUser
+ (req.session as any).user = {
+    _id: user._id,
+    email: user.email,
+username: user.username,
+    verified: true
+  }
+ }else{
  return res.status(401).send('User not authenticated');
 }
+console.log(req.session)
     // Successful authentication, redirect home.
     res.redirect('/');
 }

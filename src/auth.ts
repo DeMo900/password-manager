@@ -52,7 +52,7 @@ res.redirect("/login")
 } 
 })
 router.post("/login",body("password").notEmpty().withMessage("Password is required"),
-body("email").isEmail().withMessage("invalid email format")
+body("email").isEmail().withMessage("invalid email or password")
 ,async(req:Request,res:Response)=>{
 const results = validationResult(req);
 if(!results.isEmpty()) return res.status(400).render("login",{error:results.array()[0]!.msg});
@@ -60,12 +60,14 @@ try{
 const {email,password} = req.body;
 //checking if user exists
 const user = await userModel.findOne({email})
-if(!user){
-   return res.status(404).render("login",{error:"user not found"});
+if(!user || !user.password && user.googleId){
+   return res.status(404).render("login",{error:"Invalid email or password"});
 }
 //comparing password
+console.log(password)
+console.log(user.password)
 const isCorrect =await bcrypt.compare(password,user.password!);
-if(!isCorrect) return res.status(401).render("login",{error:"wrong password"});
+if(!isCorrect) return res.status(401).render("login",{error:"Invalid email or password"});
 
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
@@ -131,24 +133,24 @@ type blockOptions = "LOW" | "MEDIUM" | "HIGH";
     const recordLevel = await db.get(`record:${email}`)as blockOptions | null; 
         switch(recordLevel){
             case "LOW":
-           await db.set(`blackListed:${email}`, "MEDIUM", {ex: blockLevels.MEDIUM});
-                await db.set(`record:${email}`, "MEDIUM", {ex: 86400});
+           await db.set(`blackListed:${email}`, "MEDIUM", {EX: blockLevels.MEDIUM});
+                await db.set(`record:${email}`, "MEDIUM", {EX: 86400});
                 break;
             case "MEDIUM":
-                await db.set(`blackListed:${email}`, "HIGH", {ex: blockLevels.HIGH});
-                await db.set(`record:${email}`, "HIGH", {ex: 86400});
+                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {EX: 86400});
                 break;
             case "HIGH":
-                await db.set(`blackListed:${email}`, "HIGH", {ex: blockLevels.HIGH});
-                await db.set(`record:${email}`, "HIGH", {ex: 86400});
+                await db.set(`blackListed:${email}`, "HIGH", {EX: blockLevels.HIGH});
+                await db.set(`record:${email}`, "HIGH", {EX: 86400});
                 break;
         }
         return res.status(429).json({error:"you were blocked,try again later"});
     }
    //if no record create one and blacklist
-    await db.set(`blackListed:${email}`,"LOW", {ex: blockLevels.LOW});
+    await db.set(`blackListed:${email}`,"LOW", {EX: blockLevels.LOW});
     //setting record
-    await db.set(`record:${email}`, "LOW" , {ex:blockLevels.LOW});
+    await db.set(`record:${email}`, "LOW" , {EX:blockLevels.LOW});
     return res.status(429).json({error:"you were blocked,try again later"});
     }
  await db.del(`otpToken:${oldCookie}`);
@@ -176,7 +178,7 @@ email ,
 otp
 };
 //storing
-await db.set(`otpToken:${otpToken}`, JSON.stringify(tokenObject),{ex: 5 * 60});//5minutes
+await db.set(`otpToken:${otpToken}`, JSON.stringify(tokenObject),{EX: 5 * 60});//5minutes
 //seting cookies
 res.cookie("otpToken", otpToken, 
     { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 }
@@ -226,7 +228,7 @@ await db.del(`otpToken:${otpToken}`);
 res.clearCookie(`otpToken`);
 //generating token
 const passwordToken = crypto.randomUUID();
-await db.set(`passwordToken:${passwordToken}`, email,{ex: 5 * 60});//5minutes
+await db.set(`passwordToken:${passwordToken}`, email,{EX: 5 * 60});//5minutes
 //fuck vscode auto complete
 //sending token in cookies
 res.cookie("passwordToken", passwordToken, { httpOnly: true, secure: true, sameSite: "strict", maxAge: 5 * 60 * 1000 });

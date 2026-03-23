@@ -37,7 +37,7 @@ export const eventEmitter = new EventEmitter();
 eventEmitter.on("ipChange",async(user:user,newIp:string)=>{
 const code = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a random 6-digit code
 try{
-  await db.set(`ipChange:${user._id}`,code,{ex:300})
+  await db.set(`ipChange:${user._id}`,code,{EX:300})
 const transport = nodemailer.createTransport({
   service:"gmail",
   auth:{
