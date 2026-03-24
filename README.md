@@ -20,7 +20,7 @@
 - ⭐You can acsess the vault page to acsess ALL the generated passwords and copy/delete them , switch between pages (*Pagination*) or even searching for a password using the search bar 
 - 🔥Also the passwords are hidden and you have to click the hidden password so the app will verify that it's you and show it to you 
 
-  *ALL PASSWORDS GETS ENCRYPTED AES-256 100% SECURE*
+  *ALL PASSWORDS ARE ENCRYPTED AES-256 100% SECURE*
   #### ⭐*Used techs*
   - ⭐Nodejs
   - ⭐Expressjs
