@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import EventEmitter from "events";
 import nodemailer from "nodemailer";
-import db from "./app"
+import db from "./lib/redis"
 import { userModel } from "./model";
 type user = {
     _id:string,

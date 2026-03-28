@@ -22,6 +22,7 @@ form.addEventListener("submit",async(e)=>{
         const data = await res.json();
         if(data.success){
             window.location.href = "/"
+            
         }else{
             error.textContent = data.message;
         }
